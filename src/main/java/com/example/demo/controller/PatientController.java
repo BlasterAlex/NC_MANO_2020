@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.domain.Patient;
-import com.example.demo.service.PatientServiceImpl;
+import com.example.demo.service.PatientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +21,11 @@ public class PatientController {
 
     private static final Logger log = LoggerFactory.getLogger(PatientController.class);
 
-    private final PatientServiceImpl patientServiceImpl;
+    private final PatientService patientService;
 
     @Autowired
-    public PatientController(PatientServiceImpl patientService) {
-        this.patientServiceImpl = patientService;
+    public PatientController(PatientService patientService) {
+        this.patientService = patientService;
     }
 
     private ResponseEntity<String> printValidError(Errors errors) {
@@ -37,7 +37,7 @@ public class PatientController {
     @GetMapping("/all")
     public ResponseEntity<List<Patient>> findAll() {
         log.info("GET request for a list of patients");
-        List<Patient> patients = patientServiceImpl.findAll();
+        List<Patient> patients = patientService.findAll();
         return new ResponseEntity<>(patients, patients.isEmpty() ? HttpStatus.NOT_FOUND : HttpStatus.OK);
     }
 
@@ -45,7 +45,7 @@ public class PatientController {
     public ResponseEntity<Patient> find(@PathVariable Long id) {
         log.info("GET request for a patient with id " + id);
         try {
-            return new ResponseEntity<>(patientServiceImpl.find(id), HttpStatus.OK);
+            return new ResponseEntity<>(patientService.find(id), HttpStatus.OK);
         } catch (EmptyResultDataAccessException e) {
             log.info("Patient with id " + id + " not found");
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -59,7 +59,7 @@ public class PatientController {
             log.info("Patient not valid");
             return printValidError(errors);
         }
-        Long patient_id = patientServiceImpl.savePatient(patient);
+        Long patient_id = patientService.savePatient(patient);
         log.info("Patient created with id " + patient_id);
         return ResponseEntity.ok("Patient created with id " + patient_id);
     }
@@ -67,7 +67,7 @@ public class PatientController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePatient(@PathVariable Long id) {
         log.info("DELETE request for a patient with id " + id);
-        int countDeleted = patientServiceImpl.delete(id);
+        int countDeleted = patientService.delete(id);
         if (countDeleted == 0) {
             log.info("Patient with id " + id + " not found");
             return new ResponseEntity<>("Patient not found", HttpStatus.NOT_FOUND);
@@ -84,7 +84,7 @@ public class PatientController {
             return printValidError(errors);
         }
         try {
-            Long patient_id = patientServiceImpl.put(id, patient);
+            Long patient_id = patientService.put(id, patient);
             log.info("Patient updated with id " + patient_id);
             return new ResponseEntity<>("Patient updated with id " + patient_id, HttpStatus.OK);
         } catch (RuntimeException e) {
@@ -97,7 +97,7 @@ public class PatientController {
     public ResponseEntity<String> editPatient(@PathVariable Long id, @RequestBody Patient patient) {
         log.info("PATCH request for change with " + patient);
         try {
-            patientServiceImpl.patch(id, patient);
+            patientService.patch(id, patient);
             log.info("Successfully changed");
             return new ResponseEntity<>("Successfully changed", HttpStatus.OK);
         } catch (RuntimeException e) {

@@ -98,7 +98,7 @@ public class Patient {
     public void setContactWithPatients(String contactWithPatients) {
         this.contactWithPatients = contactWithPatients;
     }
-
+    
     @Override
     public String toString() {
         final List<String> fields = new ArrayList<>();
