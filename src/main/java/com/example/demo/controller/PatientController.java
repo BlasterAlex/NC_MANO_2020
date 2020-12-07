@@ -5,19 +5,15 @@ import com.example.demo.service.PatientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.ConstraintViolation;
 import javax.validation.Valid;
-import javax.validation.Validation;
-import javax.validation.Validator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping(value = "/patient")
@@ -48,11 +44,12 @@ public class PatientController {
     @GetMapping("/{id}")
     public ResponseEntity<Patient> find(@PathVariable Long id) {
         log.info("GET request for a patient with id " + id);
-        Patient patient = patientService.find(id);
-        if (patient == null) {
+        try {
+            return new ResponseEntity<>(patientService.find(id), HttpStatus.OK);
+        } catch (EmptyResultDataAccessException e) {
             log.info("Patient with id " + id + " not found");
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(patient, patient == null ? HttpStatus.NOT_FOUND : HttpStatus.OK);
     }
 
     @PostMapping
@@ -86,37 +83,26 @@ public class PatientController {
             log.info("Patient not valid");
             return printValidError(errors);
         }
-        Long patient_id = patientService.put(id, patient);
-        if (patient_id == -1) {
-            log.info("Patient with id " + id + " not found");
-            return new ResponseEntity<>("Patient not found", HttpStatus.NOT_FOUND);
+        try {
+            Long patient_id = patientService.put(id, patient);
+            log.info("Patient updated with id " + patient_id);
+            return new ResponseEntity<>("Patient updated with id " + patient_id, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.error(e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
-        log.info("Patient updated with id " + patient_id);
-        return new ResponseEntity<>("Patient updated with id " + patient_id, HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<String> addSymptom(@PathVariable Long id, @RequestBody Map<String, Object> patientInfo) {
-
-        log.info("PATCH request for change with " + patientInfo);
-
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        for (Map.Entry<String, Object> entry : patientInfo.entrySet()) {
-            Set<ConstraintViolation<Patient>> constraintViolations =
-                    validator.validateValue(Patient.class, entry.getKey(), entry.getValue());
-            if (constraintViolations.iterator().hasNext()) {
-                log.info("Patient not valid");
-                return new ResponseEntity<>(entry.getKey() + ": " +
-                        constraintViolations.iterator().next().getMessage(), HttpStatus.BAD_REQUEST);
-            }
+    public ResponseEntity<String> editPatient(@PathVariable Long id, @RequestBody Patient patient) {
+        log.info("PATCH request for change with " + patient);
+        try {
+            patientService.patch(id, patient);
+            log.info("Successfully changed");
+            return new ResponseEntity<>("Successfully changed", HttpStatus.OK);
+        } catch (RuntimeException e) {
+            log.error(e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-
-        if (!patientService.patch(id, patientInfo)) {
-            log.info("Patient with id " + id + " not found");
-            return new ResponseEntity<>("Patient not found", HttpStatus.NOT_FOUND);
-        }
-        
-        log.info("Successfully changed");
-        return new ResponseEntity<>("Successfully changed", HttpStatus.OK);
     }
 }

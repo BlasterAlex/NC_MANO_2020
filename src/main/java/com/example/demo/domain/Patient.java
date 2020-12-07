@@ -2,6 +2,8 @@ package com.example.demo.domain;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Patient {
 
@@ -99,13 +101,19 @@ public class Patient {
 
     @Override
     public String toString() {
-        return "Patient{" +
-                "surname='" + surname + '\'' +
-                ", name='" + name + '\'' +
-                ", middleName='" + middleName + '\'' +
-                ", symptoms='" + symptoms + '\'' +
-                ", isHavingTipAbroad=" + isHavingTipAbroad +
-                ", contactWithPatients=" + contactWithPatients +
-                '}';
+        final List<String> fields = new ArrayList<>();
+        if (surname != null)
+            fields.add("surname='" + surname + '\'');
+        if (name != null)
+            fields.add("name='" + name + '\'');
+        if (middleName != null)
+            fields.add("middleName='" + middleName + '\'');
+        if (symptoms != null)
+            fields.add("symptoms='" + symptoms + '\'');
+        if (isHavingTipAbroad != null)
+            fields.add("isHavingTipAbroad=" + isHavingTipAbroad);
+        if (contactWithPatients != null)
+            fields.add("contactWithPatients=" + contactWithPatients);
+        return "Patient{" + String.join(", ", fields) + '}';
     }
 }

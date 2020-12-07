@@ -2,13 +2,15 @@ package com.example.demo.service;
 
 import com.example.demo.domain.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Service;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -52,13 +54,10 @@ public class PatientService {
         return new ArrayList<>(jdbcTemplate.query("select * from patient", this::mapRowToPatient));
     }
 
-    public Patient find(Long id) {
-        try {
-            return namedParameterJdbcTemplate.queryForObject("select * from patient where patient_id = (:id)",
-                    Collections.singletonMap("id", id), this::mapRowToPatient);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
+    public Patient find(Long id) throws EmptyResultDataAccessException {
+        return namedParameterJdbcTemplate.queryForObject("select * from patient where patient_id = (:id)",
+                Collections.singletonMap("id", id), this::mapRowToPatient);
+
     }
 
     public Long savePatient(Patient patient) {
@@ -75,37 +74,132 @@ public class PatientService {
 
     public Long put(Long id, Patient patient) {
         if (delete(id) == 0)
-            return -1L;
+            throw new RuntimeException("Patient with id " + id + " not found");
         return savePatient(patient);
     }
 
-    public boolean patch(Long id, Map<String, Object> patientInfo) {
+    public void patch(Long id, Patient patient) {
         Patient patientBase = find(id);
         if (patientBase == null) {
-            return false;
+            throw new RuntimeException("Patient with id " + id + " not found");
         }
 
+        // Формирование sql запроса
         StringBuilder sqlBuilder = new StringBuilder();
+        Map<String, Object> values = new HashMap<>();
         boolean first = true;
-        for (Map.Entry<String, Object> entry : patientInfo.entrySet()) {
-            if (!first) {
-                sqlBuilder.append(", ");
+        boolean changed = false;
+
+        // Валидация введенных данных
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        Set<ConstraintViolation<Patient>> constraintViolations;
+
+        if (patient.getName() != null) {
+            String name = patient.getName();
+            constraintViolations = validator.validateValue(Patient.class, "name", name);
+            if (constraintViolations.iterator().hasNext()) {
+                throw new RuntimeException("Patient has no valid name");
             }
-            first = false;
-            sqlBuilder.append(entry.getKey())
-                    .append(" = :")
-                    .append(entry.getKey());
+            if (!patientBase.getName().equals(name)) {
+                if (!first) {
+                    sqlBuilder.append(", ");
+                }
+                first = false;
+                changed = true;
+                values.put("name", name);
+                sqlBuilder.append("name = :name");
+            }
         }
 
-        String sql = "update patient set " + sqlBuilder.toString() + " where patient_id = :id";
-        patientInfo.put("id", id);
+        if (patient.getSurname() != null) {
+            String surname = patient.getSurname();
+            constraintViolations = validator.validateValue(Patient.class, "surname", surname);
+            if (constraintViolations.iterator().hasNext()) {
+                throw new RuntimeException("Patient has no valid surname");
+            }
+            if (!patientBase.getSurname().equals(surname)) {
+                if (!first) {
+                    sqlBuilder.append(", ");
+                }
+                first = false;
+                changed = true;
+                values.put("surname", surname);
+                sqlBuilder.append("surname = :surname");
+            }
+        }
 
-        try {
-            namedParameterJdbcTemplate.update(sql, patientInfo);
-            return true;
-        } catch (DataAccessException e) {
-            System.err.println(e.getMessage());
-            return false;
+        if (patient.getMiddleName() != null) {
+            String middleName = patient.getMiddleName();
+            constraintViolations = validator.validateValue(Patient.class, "middleName", middleName);
+            if (constraintViolations.iterator().hasNext()) {
+                throw new RuntimeException("Patient has no valid middleName");
+            }
+            if (!patientBase.getMiddleName().equals(middleName)) {
+                if (!first) {
+                    sqlBuilder.append(", ");
+                }
+                first = false;
+                changed = true;
+                values.put("middleName", middleName);
+                sqlBuilder.append("middleName = :middleName");
+            }
+        }
+
+        if (patient.getSymptoms() != null) {
+            String symptoms = patient.getSymptoms();
+            constraintViolations = validator.validateValue(Patient.class, "symptoms", symptoms);
+            if (constraintViolations.iterator().hasNext()) {
+                throw new RuntimeException("Patient has no valid symptoms");
+            }
+            if (!patientBase.getSymptoms().equals(symptoms)) {
+                if (!first) {
+                    sqlBuilder.append(", ");
+                }
+                first = false;
+                changed = true;
+                values.put("symptoms", symptoms);
+                sqlBuilder.append("symptoms = :symptoms");
+            }
+        }
+
+        if (patient.getIsHavingTipAbroad() != null) {
+            String isHavingTipAbroad = patient.getIsHavingTipAbroad();
+            constraintViolations = validator.validateValue(Patient.class, "isHavingTipAbroad", isHavingTipAbroad);
+            if (constraintViolations.iterator().hasNext()) {
+                throw new RuntimeException("Patient has no valid isHavingTipAbroad");
+            }
+            if (!patientBase.getIsHavingTipAbroad().equals(isHavingTipAbroad)) {
+                if (!first) {
+                    sqlBuilder.append(", ");
+                }
+                first = false;
+                changed = true;
+                values.put("isHavingTipAbroad", isHavingTipAbroad);
+                sqlBuilder.append("isHavingTipAbroad = :isHavingTipAbroad");
+            }
+        }
+
+        if (patient.getContactWithPatients() != null) {
+            String contactWithPatients = patient.getContactWithPatients();
+            constraintViolations = validator.validateValue(Patient.class, "contactWithPatients", contactWithPatients);
+            if (constraintViolations.iterator().hasNext()) {
+                throw new RuntimeException("Patient has no valid contactWithPatients");
+            }
+            if (!patientBase.getContactWithPatients().equals(contactWithPatients)) {
+                if (!first) {
+                    sqlBuilder.append(", ");
+                }
+                first = false;
+                changed = true;
+                values.put("contactWithPatients", contactWithPatients);
+                sqlBuilder.append("contactWithPatients = :contactWithPatients");
+            }
+        }
+
+        if (changed) {
+            values.put("id", id);
+            String sql = "update patient set " + sqlBuilder.toString() + " where patient_id = :id";
+            namedParameterJdbcTemplate.update(sql, values);
         }
     }
 }
