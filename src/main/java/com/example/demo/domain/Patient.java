@@ -1,12 +1,23 @@
 package com.example.demo.domain;
 
+import com.example.demo.domain.constraints.BooleanConstraint;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Entity
 public class Patient {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "patient_id")
     private Long id;
 
     @NotNull
@@ -20,28 +31,26 @@ public class Patient {
     @Size(min = 2, max = 16)
     private String middleName;
 
-    private String symptoms;
+    @ManyToMany(cascade = CascadeType.MERGE)
+    @JoinTable(name = "patient_symptom",
+            joinColumns = @JoinColumn(name = "patient_id"),
+            inverseJoinColumns = @JoinColumn(name = "symptom_id")
+    )
+    private Set<Symptom> symptoms = new HashSet<>();
 
-    @PatientBooleanConstraint
-    private String isHavingTipAbroad;
+    @ManyToMany(cascade = CascadeType.MERGE)
+    @JoinTable(name = "patient_medic",
+            joinColumns = @JoinColumn(name = "patient_id"),
+            inverseJoinColumns = @JoinColumn(name = "medic_id")
+    )
+    @JsonIgnoreProperties("patients")
+    private Set<Medic> medics = new HashSet<>();
 
-    @PatientBooleanConstraint
+    @BooleanConstraint
+    private String isHavingTripAbroad;
+
+    @BooleanConstraint
     private String contactWithPatients;
-
-    public Patient() {
-    }
-
-    public Patient(Long id, String surname, String name,
-                   String middleName, String symptoms,
-                   String isHavingTipAbroad, String contactWithPatients) {
-        this.id = id;
-        this.surname = surname;
-        this.name = name;
-        this.middleName = middleName;
-        this.symptoms = symptoms;
-        this.isHavingTipAbroad = isHavingTipAbroad;
-        this.contactWithPatients = contactWithPatients;
-    }
 
     public Long getId() {
         return id;
@@ -75,20 +84,12 @@ public class Patient {
         this.middleName = middleName;
     }
 
-    public String getSymptoms() {
-        return symptoms;
+    public String getIsHavingTripAbroad() {
+        return isHavingTripAbroad;
     }
 
-    public void setSymptoms(String symptoms) {
-        this.symptoms = symptoms;
-    }
-
-    public String getIsHavingTipAbroad() {
-        return isHavingTipAbroad;
-    }
-
-    public void setHavingTipAbroad(String havingTipAbroad) {
-        isHavingTipAbroad = havingTipAbroad;
+    public void setIsHavingTripAbroad(String havingTripAbroad) {
+        isHavingTripAbroad = havingTripAbroad;
     }
 
     public String getContactWithPatients() {
@@ -98,7 +99,41 @@ public class Patient {
     public void setContactWithPatients(String contactWithPatients) {
         this.contactWithPatients = contactWithPatients;
     }
-    
+
+    public Set<Symptom> getSymptoms() {
+        return symptoms;
+    }
+
+    public void setSymptoms(Set<Symptom> symptoms) {
+        this.symptoms = symptoms;
+    }
+
+    public void addSymptom(Symptom symptom) {
+        symptoms.add(symptom);
+    }
+
+    public void removeSymptom(Symptom symptom) {
+        symptoms.remove(symptom);
+    }
+
+    public Set<Medic> getMedics() {
+        return medics;
+    }
+
+    public void setMedics(Set<Medic> medics) {
+        this.medics = medics;
+    }
+
+    public void addMedic(Medic medic) {
+        medics.add(medic);
+        medic.getPatients().add(this);
+    }
+
+    public void removeMedic(Medic medic) {
+        medics.remove(medic);
+        medic.getPatients().remove(this);
+    }
+
     @Override
     public String toString() {
         final List<String> fields = new ArrayList<>();
@@ -109,9 +144,19 @@ public class Patient {
         if (middleName != null)
             fields.add("middleName='" + middleName + '\'');
         if (symptoms != null)
-            fields.add("symptoms='" + symptoms + '\'');
-        if (isHavingTipAbroad != null)
-            fields.add("isHavingTipAbroad=" + isHavingTipAbroad);
+            fields.add("symptoms=[" +
+                    symptoms.stream()
+                            .map(entry -> String.valueOf(entry.getId()))
+                            .sorted()
+                            .collect(Collectors.joining(", ")) + ']');
+        if (medics != null)
+            fields.add("medics=[" +
+                    medics.stream()
+                            .map(entry -> String.valueOf(entry.getId()))
+                            .sorted()
+                            .collect(Collectors.joining(", ")) + ']');
+        if (isHavingTripAbroad != null)
+            fields.add("isHavingTripAbroad=" + isHavingTripAbroad);
         if (contactWithPatients != null)
             fields.add("contactWithPatients=" + contactWithPatients);
         return "Patient{" + String.join(", ", fields) + '}';

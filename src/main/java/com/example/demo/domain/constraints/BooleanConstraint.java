@@ -1,4 +1,4 @@
-package com.example.demo.domain;
+package com.example.demo.domain.constraints;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -9,9 +9,9 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = PatientBooleanConstraintValidator.class)
+@Constraint(validatedBy = BooleanConstraintValidator.class)
 
-public @interface PatientBooleanConstraint {
+public @interface BooleanConstraint {
     String message() default "должнен быть типом boolean";
 
     Class<?>[] groups() default {};

@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.jdbcTemplates;
 
 import com.example.demo.domain.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public class PatientServiceImpl implements PatientService {
         params.put("name", patient.getName());
         params.put("middleName", patient.getMiddleName());
         params.put("symptoms", patient.getSymptoms());
-        params.put("isHavingTipAbroad", patient.getIsHavingTipAbroad());
+        params.put("isHavingTripAbroad", patient.getIsHavingTripAbroad());
         params.put("contactWithPatients", patient.getContactWithPatients());
         return params;
     }
