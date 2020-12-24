@@ -1,6 +1,6 @@
 package com.example.demo.tests;
 
-import com.example.demo.domain.Patient;
+import com.example.demo.backend.domain.Patient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -26,85 +26,85 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PatientControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Autowired
-    ObjectMapper objectMapper;
+  @Autowired
+  ObjectMapper objectMapper;
 
-    private static Long patientId;
+  private static Long patientId;
 
-    @Test
-    @Order(1)
-    public void findAll() throws Exception {
-        mockMvc.perform(get("/patient/all"))
-                .andExpect(status().isOk());
+  @Test
+  @Order(1)
+  public void findAll() throws Exception {
+    mockMvc.perform(get("/patient/all"))
+            .andExpect(status().isOk());
+  }
+
+  @Test
+  @Order(2)
+  public void add() throws Exception {
+    Patient patient = new Patient();
+    patient.setName("Alexander");
+    patient.setSurname("Pishulev");
+
+    MvcResult result = this.mockMvc.perform(post("/patient")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(patient)))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    Pattern p = Pattern.compile("id ([0-9]+)");
+    Matcher m = p.matcher(result.getResponse().getContentAsString());
+    if (m.find()) {
+      patientId = Long.parseLong(m.group(1));
     }
+  }
 
-    @Test
-    @Order(2)
-    public void add() throws Exception {
-        Patient patient = new Patient();
-        patient.setName("Alexander");
-        patient.setSurname("Pishulev");
+  @Test
+  @Order(3)
+  public void find() throws Exception {
+    mockMvc.perform(get("/patient/" + patientId))
+            .andExpect(status().isOk())
+            .andExpect(content().json("{'surname':'Pishulev','name':'Alexander'}"));
+  }
 
-        MvcResult result = this.mockMvc.perform(post("/patient")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(patient)))
-                .andExpect(status().isOk())
-                .andReturn();
+  @Test
+  @Order(4)
+  public void update() throws Exception {
+    Patient patient = new Patient();
+    patient.setName("Dmitriy");
+    patient.setSurname("Osinov");
 
-        Pattern p = Pattern.compile("id ([0-9]+)");
-        Matcher m = p.matcher(result.getResponse().getContentAsString());
-        if (m.find()) {
-            patientId = Long.parseLong(m.group(1));
-        }
+    MvcResult result = this.mockMvc.perform(put("/patient/" + patientId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(patient)))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    Pattern p = Pattern.compile("id ([0-9]+)");
+    Matcher m = p.matcher(result.getResponse().getContentAsString());
+    if (m.find()) {
+      patientId = Long.parseLong(m.group(1));
     }
+  }
 
-    @Test
-    @Order(3)
-    public void find() throws Exception {
-        mockMvc.perform(get("/patient/" + patientId))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{'surname':'Pishulev','name':'Alexander'}"));
-    }
+  @Test
+  @Order(5)
+  public void edit() throws Exception {
+    Patient patient = new Patient();
+    patient.setName("Misha");
+    mockMvc.perform(patch("/patient/" + patientId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(patient)))
+            .andExpect(status().isOk());
+  }
 
-    @Test
-    @Order(4)
-    public void update() throws Exception {
-        Patient patient = new Patient();
-        patient.setName("Dmitriy");
-        patient.setSurname("Osinov");
-
-        MvcResult result = this.mockMvc.perform(put("/patient/" + patientId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(patient)))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        Pattern p = Pattern.compile("id ([0-9]+)");
-        Matcher m = p.matcher(result.getResponse().getContentAsString());
-        if (m.find()) {
-            patientId = Long.parseLong(m.group(1));
-        }
-    }
-
-    @Test
-    @Order(5)
-    public void edit() throws Exception {
-        Patient patient = new Patient();
-        patient.setName("Misha");
-        mockMvc.perform(patch("/patient/" + patientId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(patient)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @Order(6)
-    public void del() throws Exception {
-        mockMvc.perform(delete("/patient/" + patientId))
-                .andExpect(status().isOk());
-    }
+  @Test
+  @Order(6)
+  public void del() throws Exception {
+    mockMvc.perform(delete("/patient/" + patientId))
+            .andExpect(status().isOk());
+  }
 
 }

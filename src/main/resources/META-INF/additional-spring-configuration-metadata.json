@@ -1,0 +1,24 @@
+{
+  "properties": [
+    {
+      "name": "backend.server",
+      "type": "java.lang.String",
+      "description": "Description for backend.server."
+    },
+    {
+      "name": "backend.port",
+      "type": "java.lang.String",
+      "description": "Description for backend.port."
+    },
+    {
+      "name": "welcome.message",
+      "type": "java.lang.String",
+      "description": "Description for welcome.message."
+    },
+    {
+      "name": "error.message",
+      "type": "java.lang.String",
+      "description": "Description for error.message."
+    }
+  ]
+}

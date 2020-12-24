@@ -1,7 +1,7 @@
-package com.example.demo.controller;
+package com.example.demo.backend.controller;
 
-import com.example.demo.domain.Patient;
-import com.example.demo.repository.PatientRepository;
+import com.example.demo.backend.domain.Patient;
+import com.example.demo.backend.repository.PatientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 @RestController
-@RequestMapping(value = "/patient")
+@RequestMapping(value = "/backend/patient")
 public class PatientController extends AbstractController<Patient> {
 
     private static final Logger log = LoggerFactory.getLogger(PatientController.class);
@@ -64,8 +63,8 @@ public class PatientController extends AbstractController<Patient> {
                 (String) compareValue(oldPatient.getIsHavingTripAbroad(), newPatient.getIsHavingTripAbroad()));
         oldPatient.setContactWithPatients(
                 (String) compareValue(oldPatient.getContactWithPatients(), newPatient.getContactWithPatients()));
-        oldPatient.setSymptoms((Set) compareValue(oldPatient.getSymptoms(), newPatient.getSymptoms()));
-        oldPatient.setMedics((Set) compareValue(oldPatient.getMedics(), newPatient.getMedics()));
+        oldPatient.setSymptoms((List) compareValue(oldPatient.getSymptoms(), newPatient.getSymptoms()));
+        oldPatient.setMedics((List) compareValue(oldPatient.getMedics(), newPatient.getMedics()));
     }
 
     @Override
@@ -93,8 +92,9 @@ public class PatientController extends AbstractController<Patient> {
     public ResponseEntity<String> add(@RequestBody @Valid Patient patient, Errors errors) {
         log.info("POST request for creation " + patient);
         if (errors.hasErrors()) {
-            log.info("Patient not valid");
-            return printValidError(errors);
+            ResponseEntity<String> error = printValidError(errors);
+            log.info("Patient not valid (" + error.getBody() + ")");
+            return error;
         }
         Long patient_id = patientRepository.save(patient).getId();
         log.info("Patient created with id " + patient_id);

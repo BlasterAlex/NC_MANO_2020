@@ -7,3 +7,9 @@ logging:
     com.example.demo.controller: INFO
   file:
     name: logs/application-debug.log
+
+backend:
+  server:
+    http://localhost
+  port:
+    8080

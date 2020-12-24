@@ -1,4 +1,4 @@
-package com.example.demo.domain.constraints;
+package com.example.demo.backend.domain.constraints;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -12,9 +12,9 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = BooleanConstraintValidator.class)
 
 public @interface BooleanConstraint {
-    String message() default "должнен быть типом boolean";
+  String message() default "должнен быть типом boolean";
 
-    Class<?>[] groups() default {};
+  Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default {};
+  Class<? extends Payload>[] payload() default {};
 }

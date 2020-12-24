@@ -1,23 +1,25 @@
-package com.example.demo.domain;
+package com.example.demo.backend.domain;
 
-import com.example.demo.domain.constraints.BooleanConstraint;
+import com.example.demo.backend.domain.constraints.BooleanConstraint;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
+@Data
 @Entity
 public class Patient {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "patient_id")
+    @EqualsAndHashCode.Exclude
     private Long id;
 
     @NotNull
@@ -36,7 +38,7 @@ public class Patient {
             joinColumns = @JoinColumn(name = "patient_id"),
             inverseJoinColumns = @JoinColumn(name = "symptom_id")
     )
-    private Set<Symptom> symptoms = new HashSet<>();
+    private List<Symptom> symptoms = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.MERGE)
     @JoinTable(name = "patient_medic",
@@ -44,95 +46,13 @@ public class Patient {
             inverseJoinColumns = @JoinColumn(name = "medic_id")
     )
     @JsonIgnoreProperties("patients")
-    private Set<Medic> medics = new HashSet<>();
+    private List<Medic> medics = new ArrayList<>();
 
     @BooleanConstraint
     private String isHavingTripAbroad;
 
     @BooleanConstraint
     private String contactWithPatients;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getMiddleName() {
-        return middleName;
-    }
-
-    public void setMiddleName(String middleName) {
-        this.middleName = middleName;
-    }
-
-    public String getIsHavingTripAbroad() {
-        return isHavingTripAbroad;
-    }
-
-    public void setIsHavingTripAbroad(String havingTripAbroad) {
-        isHavingTripAbroad = havingTripAbroad;
-    }
-
-    public String getContactWithPatients() {
-        return contactWithPatients;
-    }
-
-    public void setContactWithPatients(String contactWithPatients) {
-        this.contactWithPatients = contactWithPatients;
-    }
-
-    public Set<Symptom> getSymptoms() {
-        return symptoms;
-    }
-
-    public void setSymptoms(Set<Symptom> symptoms) {
-        this.symptoms = symptoms;
-    }
-
-    public void addSymptom(Symptom symptom) {
-        symptoms.add(symptom);
-    }
-
-    public void removeSymptom(Symptom symptom) {
-        symptoms.remove(symptom);
-    }
-
-    public Set<Medic> getMedics() {
-        return medics;
-    }
-
-    public void setMedics(Set<Medic> medics) {
-        this.medics = medics;
-    }
-
-    public void addMedic(Medic medic) {
-        medics.add(medic);
-        medic.getPatients().add(this);
-    }
-
-    public void removeMedic(Medic medic) {
-        medics.remove(medic);
-        medic.getPatients().remove(this);
-    }
 
     @Override
     public String toString() {
@@ -161,4 +81,5 @@ public class Patient {
             fields.add("contactWithPatients=" + contactWithPatients);
         return "Patient{" + String.join(", ", fields) + '}';
     }
+
 }
