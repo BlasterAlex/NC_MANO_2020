@@ -54,9 +54,13 @@ public class UiPatientService {
         }
     }
 
-    public ResponseEntity<String> addPatient(Patient patient) {
+    public ResponseEntity<String> addUiPatient(UiPatient uiPatient) {
         try {
-            return restTemplate.postForEntity(server + ":" + port + "/backend/patient/", patient, String.class);
+            return restTemplate.postForEntity(
+                    server + ":" + port + "/backend/patient/",
+                    patientBuilder.encode(uiPatient),
+                    String.class
+            );
         } catch (HttpClientErrorException.BadRequest e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -71,10 +75,10 @@ public class UiPatientService {
         }
     }
 
-    public ResponseEntity<String> updatePatient(Long id, Patient patient) {
+    public ResponseEntity<String> updatePatient(Long id, UiPatient uiPatient) {
         try {
-            restTemplate.put(server + ":" + port + "/backend/patient/" + id, patient, Patient.class);
-            return ResponseEntity.ok("Patient updated with id " + id);
+            restTemplate.put(server + ":" + port + "/backend/patient/" + id, patientBuilder.encode(uiPatient), Patient.class);
+            return ResponseEntity.ok("Patient updated");
         } catch (HttpClientErrorException.NotFound e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (HttpClientErrorException.BadRequest e) {
@@ -82,9 +86,9 @@ public class UiPatientService {
         }
     }
 
-    public ResponseEntity<String> editPatient(Long id, Patient patient) {
+    public ResponseEntity<String> editPatient(Long id, UiPatient uiPatient) {
         try {
-            restTemplate.patchForObject(server + ":" + port + "/backend/patient/" + id, patient, String.class);
+            restTemplate.patchForObject(server + ":" + port + "/backend/patient/" + id, patientBuilder.encode(uiPatient), String.class);
             return ResponseEntity.ok("Patient successfully changed");
         } catch (HttpClientErrorException.NotFound e) {
             return new ResponseEntity<>("Patient not found", HttpStatus.NOT_FOUND);

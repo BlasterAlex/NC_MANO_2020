@@ -1,0 +1,14 @@
+body {
+    padding: 10px;
+}
+
+thead tr th:first-child,
+tbody tr td:first-child {
+    width: 5em;
+    min-width: 5em;
+    max-width: 5em;
+}
+
+.goto {
+    margin-top: 10px;
+}

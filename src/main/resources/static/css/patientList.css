@@ -1,0 +1,19 @@
+body {
+    padding: 10px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table td, th {
+    padding: 5px;
+}
+
+.create-button {
+    margin-bottom: 10px;
+}
+
+.valid-error {
+    color: #ea2525;
+}
